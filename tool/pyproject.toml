@@ -1,0 +1,14 @@
+[project]
+name = "ai-adapter-tool"
+version = "0.1.0"
+description = "Standalone local AI CLI adapter"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+ai-adapter = "ai_adapter_tool.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
