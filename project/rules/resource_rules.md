@@ -1,3 +1,9 @@
+---
+name: "资源规则"
+id: resource_rules
+category: rules
+---
+
 # 资源规则
 
 ## 资源命名

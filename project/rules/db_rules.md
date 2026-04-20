@@ -1,3 +1,9 @@
+---
+name: "DB与数据规则"
+id: db_rules
+category: rules
+---
+
 ## DB与数据规则
 
 - DB 设计位于程序实现前，字段、状态、读写边界和存储边界必须明确。
