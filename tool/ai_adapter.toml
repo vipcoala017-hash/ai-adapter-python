@@ -20,7 +20,7 @@ yolo = true
 
 [providers.codex]
 # Provider CLI template.
-cli = 'codex exec -c model="{{agent.model.codex}}" -c model_instructions_file=".\\.codex\\agents\\{{agent.name}}.md" --skip-git-repo-check {{yolo:--yolo}}'
+cli = 'codex exec -c model="{{agent.model.codex}}" -c model_instructions_file=".\\.copilot\\agents\\{{agent.name}}.md" --skip-git-repo-check {{yolo:--yolo}}'
 
 [providers.copilot]
 # Provider CLI template.
