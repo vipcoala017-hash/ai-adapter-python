@@ -12,7 +12,7 @@ default_agent = "general-senior-dev-agent"
 # How prompt text is passed to the CLI: stdin or arg.
 prompt_mode = "stdin"
 # Child process launch mode: direct, powershell, or bash.
-launch_mode = "powershell"
+launch_mode = "bash"
 # Timeout for one invocation, in seconds.
 timeout_seconds = 600
 # Whether to append --yolo.
