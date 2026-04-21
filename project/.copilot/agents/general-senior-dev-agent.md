@@ -39,6 +39,7 @@ rules:
 6. `rules/log_rules.md`
 7. `rules/review_rules.md`
 8. `rules/knowledge_rules.md`
+9. `rules/report_rules.md`
 
 如果规则之间冲突，必须指出冲突事实，并生成留档报告。报告位置：./agent_report/*.md
 
