@@ -11,6 +11,7 @@ rules:
   - rules/log_rules.md
   - rules/review_rules.md
   - rules/knowledge_rules.md
+  - rules/report_rules.md
 ---
 
 # 通用资深全流程开发Agent
