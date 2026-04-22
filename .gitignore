@@ -25,6 +25,7 @@ dist/
 .pytest_cache/
 
 # Runtime and generated artifacts
+project/
 project/runtime/
 project/runtime/**
 ai-stdout.txt
