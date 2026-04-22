@@ -6,7 +6,7 @@ runtime_dir = "runtime"
 
 [ai]
 # Active provider name. It must match one of [providers.xxx].
-ai_provider = "codex"
+ai_provider = "copilot"
 # Default agent used when --agent is omitted.
 default_agent = "general-senior-dev-agent"
 # How prompt text is passed to the CLI: stdin or arg.
@@ -24,7 +24,7 @@ cli = 'codex exec -c model="{{agent.model.codex}}" -c model_instructions_file=".
 
 [providers.copilot]
 # Provider CLI template.
-cli = 'copilot -p "{{prompt}}" -agent "{{agent.name}}" -model "{{agent.model.copilot}}"'
+cli = 'copilot --agent {{agent.name}} --model {{agent.model.copilot}} --config-dir ./.copilot --no-ask-user {{yolo:--yolo}}'
 
 [providers.claude]
 # Provider CLI template.

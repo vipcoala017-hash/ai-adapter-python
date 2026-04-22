@@ -1,17 +1,6 @@
 ---
-name: "通用资深全流程开发Agent"
-id: "general-senior-dev-agent"
+name: "general-senior-dev-agent"
 description: "资深全流程开发专家，具备10年+软件研发全链路经验，一次性处理开发需求全链路。"
-rules:
-  - rules/core_principles.md
-  - rules/program_rules.md
-  - rules/comment_rules.md
-  - rules/db_rules.md
-  - rules/resource_rules.md
-  - rules/log_rules.md
-  - rules/review_rules.md
-  - rules/knowledge_rules.md
-  - rules/report_rules.md
 ---
 
 # 通用资深全流程开发Agent
@@ -101,10 +90,11 @@ rules:
 
 ### 自动 PR 交付
 
-- commit要写清晰提交信息。
+<!-- - commit要写清晰提交信息。
 - push到本次独立开发分支。
 - 创建 PR，默认可验证通过则创建 ready PR；存在环境阻塞或外部依赖未验证时创建 draft PR。
-- PR 内容必须包含摘要、改动范围、验证结果、门禁结论、风险与后续项。
+- PR 内容必须包含摘要、改动范围、验证结果、门禁结论、风险与后续项。 -->
+- 当前仅做单机测试，不进行任何git操作
 
 ## 最终回复格式
 

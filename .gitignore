@@ -1,0 +1,50 @@
+# Python environment
+.venv/
+venv/
+env/
+ENV/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# OS files
+.DS_Store
+
+# Editor directories
+.vscode/
+.idea/
+
+# Pytest cache
+.pytest_cache/
+
+# Runtime and generated artifacts
+project/runtime/
+project/runtime/**
+ai-stdout.txt
+index.html
+*.log
+
+# Databases
+*.db
+*.sqlite
+
+# Copilot session cache
+.copilot/session-state/
+.copilot/session-state/**
+
+# Project-specific examples to remove from repo
+project/calculator.py
+project/tests/test_calculator.py
+project/docs/做个计算器.md
+project/docs/计算器使用说明.md
+
+# Ignore common bytecode and temp files
+*.pyc
+*.pyo
