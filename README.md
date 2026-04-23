@@ -17,6 +17,18 @@
 python -m ai_adapter_tool run --config tool\ai_adapter.toml --agent general-senior-dev-agent
 ```
 
+## 生成文件说明
+
+执行 `run` 后，会在 `project_dir\runtime\ai-runs\run-...\` 下生成本次运行目录，主要文件包括：
+
+1. `ai-prompt.md`：本次运行使用的 prompt 内容。
+2. `ai-invocation.md`：本次 AI 调用的命令、工作目录和回放信息。
+3. `ai-stdout.txt` / `ai-stderr.txt`：AI 进程的标准输出和标准错误日志。
+
+另外，`ai_config` 目录下可能会生成或更新 `logs`、`session-state`、`config.json` 等临时产物；如果开启清理，它们会在运行结束后被删除。
+
+
+
 # 配置说明
 
 `tool\ai_adapter.toml` 是主配置文件，实际会读取以下区块。
