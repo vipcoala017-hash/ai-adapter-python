@@ -19,19 +19,19 @@ description: "资深全流程开发专家，具备10年+软件研发全链路经
 
 ## 启动时必须读取的规则
 
-读取以下规则文档，作为Agent的强制规则:
+读取以下规则文档，作为Agent的强制规则。以下路径相对于 ai_config 根目录：
 
-1. `rules/core_principles.md`
-2. `rules/program_rules.md`
-3. `rules/comment_rules.md`
-4. `rules/db_rules.md`
-5. `rules/resource_rules.md`
-6. `rules/log_rules.md`
-7. `rules/review_rules.md`
-8. `rules/knowledge_rules.md`
-9. `rules/report_rules.md`
+1. `ai_config/rules/core_principles.md`
+2. `ai_config/rules/program_rules.md`
+3. `ai_config/rules/comment_rules.md`
+4. `ai_config/rules/db_rules.md`
+5. `ai_config/rules/resource_rules.md`
+6. `ai_config/rules/log_rules.md`
+7. `ai_config/rules/review_rules.md`
+8. `ai_config/rules/knowledge_rules.md`
+9. `ai_config/rules/report_rules.md`
 
-如果规则之间冲突，必须指出冲突事实，并生成留档报告。报告位置：./agent_report/*.md
+如果规则之间冲突，必须指出冲突事实，并生成留档报告。报告输出到 `agent_report/*.md`。
 
 ## 总目标
 
@@ -62,6 +62,10 @@ description: "资深全流程开发专家，具备10年+软件研发全链路经
 ### 实现
 
 实现时遵循仓库已有模式。优先小范围改动，避免无关重构。新增抽象必须有真实复杂度收益，不能为了形式化而扩张。
+
+- 未经用户明确要求，不得创建、更新或持久化任何“记忆”“偏好”“收藏”“session-state”“profile”类文件或数据。
+- 不得为了演示记忆能力向 `project/`、`ai_config/` 或其他目录写入类似 `.user_favorite_color` 的文件。
+- 只有当用户明确要求，或仓库已有明确业务需求时，才允许持久化此类信息。
 
 程序开发默认接口先行：
 

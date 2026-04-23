@@ -1,8 +1,22 @@
 [common]
-# Target project directory, resolved relative to this config file.
-target_dir = "../project"
-# Runtime directory created under target_dir.
+# Default project directory, resolved relative to this config file.
+project_dir = "../project"
+# Runtime directory created under project_dir.
 runtime_dir = "runtime"
+
+[ai_config]
+# AI config directory, resolved relative to this config file.
+dir = "../ai_config"
+# Whether to delete generated ai_config artifacts after run completes.
+cleanup_generated_artifacts = true
+
+[prd]
+# Default PRD alias used when --prd-name/--prd-path is omitted.
+default = "default"
+
+[prd.refs]
+# PRD alias -> path relative to project_dir.
+default = "PRD.toml"
 
 [ai]
 # Active provider name. It must match one of [providers.xxx].
@@ -20,11 +34,11 @@ yolo = true
 
 [providers.codex]
 # Provider CLI template.
-cli = 'codex exec -c model="{{agent.model.codex}}" -c model_instructions_file=".\\.copilot\\agents\\{{agent.name}}.md" --skip-git-repo-check {{yolo:--yolo}}'
+cli = 'codex exec -c model="{{agent.model.codex}}" -c model_instructions_file="{{agent_file}}" --skip-git-repo-check {{yolo:--yolo}}'
 
 [providers.copilot]
 # Provider CLI template.
-cli = 'copilot --agent {{agent.name}} --model {{agent.model.copilot}} --config-dir ./.copilot --no-ask-user {{yolo:--yolo}}'
+cli = 'copilot --agent {{agent.name}} --model {{agent.model.copilot}} --config-dir "{{ai_config_dir}}" --no-ask-user {{yolo:--yolo}}'
 
 [providers.claude]
 # Provider CLI template.
@@ -33,4 +47,4 @@ cli = 'claude --model "{{agent.model.claude}}" {{yolo:--yolo}}'
 [agents.general-senior-dev-agent]
 # The agent name must match the markdown file under .codex/agents/.
 name = "general-senior-dev-agent"
-model = { codex = "gpt-5.4-mini", copilot = "gpt-5.4-mini", claude = "claude-3.5-sonnet" }
+model = { codex = "gpt-5.4-mini", copilot = "gpt-5-mini", claude = "claude-3.5-sonnet" }
