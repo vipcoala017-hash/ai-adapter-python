@@ -1,10 +1,12 @@
 # 快速使用
 
+使用前请先在 `tool\ai_adapter.toml` 中指定 `project_dir`，确保运行时能正确定位项目根目录。
+
 ## 必要配置
 
-1. `tool\ai_adapter.toml`
-2. `ai_config\`
-3. `project` 下的 PRD 文件，例如 `PRD.toml`
+1. `tool\ai_adapter.toml`：主配置文件，负责指定项目目录、AI 配置目录、PRD 映射和 provider 模板。
+2. `ai_config\`：AI 相关配置目录，包含 `rules\`、`agents\` 等运行所需内容。
+3. `project` 下的 PRD 文件，例如 `PRD.toml`：本次任务的说明文件，描述目标、范围和处理要求。
 
 ## 调用示例
 
