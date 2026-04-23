@@ -1,106 +1,154 @@
-# Python AI Adapter
+# 快速使用
 
-独立的本地 AI 适配工具。
+## 必要配置
 
-## 规则
+1. `tool\ai_adapter.toml`
+2. `ai_config\`
+3. `project` 下的 PRD 文件，例如 `PRD.toml`
 
-- 配置文件在 `tool/ai_adapter.toml`
-- 默认三层目录是 `tool/`、`ai_config/`、`project/`
-- `ai_adapter.toml` 提供默认值；必要路径都可以通过命令行 `--xxx` 直接覆盖
-- `project_dir` 默认指向目标项目目录
-- `ai_config.dir` 默认指向 agent/rules/provider 配置目录
-- `ai_config.cleanup_generated_artifacts` 默认 `true`，运行完成后会自动删除 `logs/`、`session-state/` 和 `config.json`
-- agent 文档中的规则路径直接写成相对于 `ai_config.dir` 根目录的位置，不生成临时 ai_config，也不做路径替换
-- `PRD` 通过 `ai_adapter.toml` 中的 `[prd].default` + `[prd.refs]` 映射到具体文件
-- provider 使用 `[providers.<name>]` 扩展
-- `ai.ai_provider = "<name>"` 时，会使用 `providers.<name>` 的 CLI 模板
-- `agent.model = { <name> = "" }` 与 provider 名称对应
-- 每次 `run` 执行完成后，工具会自动清理 `ai_config.dir` 下的 `logs/`、`session-state/` 和 `config.json`
+## 调用示例
 
-## 语言约定
-
-- 面向用户的输出、仓库文档和 PR 说明使用中文。
-- 代码内注释使用英文，尤其是契约、参数、返回值、错误行为、并发与副作用说明。
-- 若规则与注释出现表面冲突，以 [ai_config/rules/core_principles.md](ai_config/rules/core_principles.md) 中的优先级说明为准。
-
-默认 `PRD` 文件缺失时，工具会先创建模板并退出，提示你补内容后重试。
-
-## 配置示例
-
-```toml
-[common]
-project_dir = "../project"
-runtime_dir = "runtime"
-
-[ai_config]
-dir = "../ai_config"
-
-[prd]
-default = "default"
-
-[prd.refs]
-default = "PRD.toml"
-demo = "prds/demo.toml"
-```
-
-命令行覆盖优先级高于 `ai_adapter.toml` 默认值：
-
-- `--project-dir`：覆盖 `project_dir`
-- `--ai-config-dir`：覆盖 `ai_config.dir`
-- `--prd-name`：覆盖 `[prd].default`，按 `[prd.refs]` 查找具体文件
-- `--prd-path`：直接指定 PRD 文件路径，优先级高于 `--prd-name`
-- `--cleanup-ai-config-artifacts` / `--no-cleanup-ai-config-artifacts`：控制 run 完成后是否删除 `logs/`、`session-state/` 和 `config.json`
-
-## 运行示例
-
-### PowerShell
+1. 进入仓库根目录
+2. 运行：
 
 ```powershell
-cd D:\workspace\solo-noui-nogit-harness-prompt\ai-adapter-python\tool\src
-python -m ai_adapter_tool status --config ..\ai_adapter.toml --agent general-senior-dev-agent
-python -m ai_adapter_tool dry-run --config ..\ai_adapter.toml --agent general-senior-dev-agent
-python -m ai_adapter_tool run --config ..\ai_adapter.toml --agent general-senior-dev-agent
-python -m ai_adapter_tool status --config ..\ai_adapter.toml --agent general-senior-dev-agent --project-dir D:\workspace\my-project --ai-config-dir D:\workspace\my-ai-config --prd-name demo
+python -m ai_adapter_tool run --config tool\ai_adapter.toml --agent general-senior-dev-agent
 ```
 
-### Bash
+# 配置说明
+
+`tool\ai_adapter.toml` 是主配置文件，实际会读取以下区块。
+
+## `[common]`
+
+负责仓库级路径和运行目录。
+
+| 字段 | 说明 |
+| --- | --- |
+| `project_dir` | 要操作的项目根目录。可写相对路径或绝对路径，示例值为 `D:\ai-adapter-python`。 |
+| `runtime_dir` | 运行时输出目录名，必须是相对路径。程序会在 `project_dir` 下生成 `runtime\ai-runs\...`。 |
+
+## `[ai_config]`
+
+负责 AI 配置目录及其运行后清理策略。
+
+| 字段 | 说明 |
+| --- | --- |
+| `dir` | `ai_config` 目录路径。用于查找 `rules\`、`agents\`、`config.json` 等文件。 |
+| `cleanup_generated_artifacts` | 是否在 `run` 完成后删除 `ai_config` 下的临时产物，包括 `logs`、`session-state` 和 `config.json`。 |
+
+## `[prd]`
+
+负责本次任务的 PRD 选择。
+
+| 字段 | 说明 |
+| --- | --- |
+| `default` | 默认 PRD 别名。未传 `--prd-name` 时使用它。 |
+| `refs` | PRD 别名到文件路径的映射。当前示例中 `default = "PRD.toml"`。 |
+
+## `[ai]`
+
+负责 AI 调用方式。
+
+| 字段 | 说明 |
+| --- | --- |
+| `ai_provider` | 当前启用的 provider 名称，必须能在 `[providers.<name>]` 中找到对应模板。 |
+| `default_agent` | 未传 `--agent` 时使用的 agent 名称。 |
+| `prompt_mode` | 提示词传递方式，只支持 `stdin` 或 `arg`。 |
+| `launch_mode` | 子进程启动方式，只支持 `direct`、`powershell` 或 `bash`。 |
+| `timeout_seconds` | 单次调用超时时间，单位秒。 |
+| `yolo` | 是否向 provider CLI 追加 `--yolo`。 |
+
+## `[providers.*]`
+
+每个 provider 定义一条 CLI 模板。
+
+| 字段 | 说明 |
+| --- | --- |
+| `cli` | 实际启动命令模板。支持占位符 `{{agent.name}}`、`{{agent.model.<provider>}}`、`{{ai_config_dir}}`、`{{project_dir}}`、`{{prd_path}}`、`{{agent_file}}`、`{{yolo:--yolo}}`。 |
+
+当前示例包含：
+
+| provider | 模板用途 |
+| --- | --- |
+| `codex` | 调用 `codex exec`。 |
+| `copilot` | 调用 `copilot --agent ...`。 |
+| `claude` | 调用 `claude --model ...`。 |
+
+## `[agents.*]`
+
+每个 agent 定义名称和模型映射。
+
+| 字段 | 说明 |
+| --- | --- |
+| `name` | agent 的实际名称。必须与 `ai_config\agents\*.md` 文件名对应。 |
+| `model` | 各 provider 对应的模型名映射，例如 `codex`、`copilot`、`claude`。 |
+
+## `PRD.toml`
+
+`PRD.toml` 描述本次 PR 的目标。
+
+| 字段 | 说明 |
+| --- | --- |
+| `title` | 任务标题，会进入运行时 prompt。 |
+| `doc` | PRD 说明文档路径。可写相对路径或绝对路径，但最终必须落在 `project_dir` 内。 |
+| `level` | 任务级别，默认是 `task`。 |
+
+# 命令行覆盖选项
+
+命令行参数的优先级高于配置文件。
+
+## 通用选项
+
+| 参数 | 说明 |
+| --- | --- |
+| `--config` | 指定 `ai_adapter.toml` 路径；也可通过环境变量 `AI_ADAPTER_CONFIG` 提供。 |
+| `--agent` | 指定本次使用的 agent，优先于 `[ai].default_agent`。 |
+| `--project-dir` | 覆盖 `[common].project_dir`。 |
+| `--ai-config-dir` | 覆盖 `[ai_config].dir`。 |
+
+## PRD 覆盖选项
+
+| 参数 | 说明 |
+| --- | --- |
+| `--prd-name` | 按别名选择 PRD，会从 `[prd.refs]` 中查找。 |
+| `--prd-path` | 直接指定 PRD 文件路径，优先级高于 `--prd-name`。 |
+
+## 清理选项
+
+| 参数 | 说明 |
+| --- | --- |
+| `--cleanup-ai-config-artifacts` | 运行结束后删除 `ai_config` 的临时产物。 |
+| `--no-cleanup-ai-config-artifacts` | 运行结束后保留 `ai_config` 的临时产物。 |
+
+## 规则说明
+
+1. `--prd-path` 优先级最高，直接覆盖 PRD 文件位置。
+2. `--prd-name` 只负责从 `[prd.refs]` 里选别名，不直接写文件路径。
+3. 路径参数在 Windows 上建议使用反斜杠，带空格时请加引号。
+4. `--project-dir` 和 `--ai-config-dir` 都会影响相对路径解析结果。
+
+# 运行示例
+
+PowerShell:
+
+```powershell
+cd D:\ai-adapter-python\tool\src
+python -m ai_adapter_tool run --config ..\ai_adapter.toml --agent general-senior-dev-agent
+```
+
+Bash:
 
 ```bash
-cd /d/workspace/solo-noui-nogit-harness-prompt/ai-adapter-python/tool/src
-python -m ai_adapter_tool status --config ../ai_adapter.toml --agent general-senior-dev-agent
-python -m ai_adapter_tool dry-run --config ../ai_adapter.toml --agent general-senior-dev-agent
+cd /d/ai-adapter-python/tool/src
 python -m ai_adapter_tool run --config ../ai_adapter.toml --agent general-senior-dev-agent
-python -m ai_adapter_tool status --config ../ai_adapter.toml --agent general-senior-dev-agent --project-dir /workspace/my-project --ai-config-dir /workspace/my-ai-config --prd-name demo
-python -m ai_adapter_tool status --config ../ai_adapter.toml --agent general-senior-dev-agent --project-dir /workspace/my-project --prd-path /workspace/my-project/prds/demo.toml
 ```
 
-### Python
+Python:
 
 ```python
-import os
-import sys
-
-cwd = r"D:\workspace\solo-noui-nogit-harness-prompt\ai-adapter-python\tool\src"
-config = r"..\ai_adapter.toml"
-agent = "general-senior-dev-agent"
-project_dir = r"D:\workspace\my-project"
-ai_config_dir = r"D:\workspace\my-ai-config"
-prd_name = "demo"
-
-os.chdir(cwd)
-sys.path.insert(0, cwd)
-
 from ai_adapter_tool import execute
-
-execute(["status", "--config", config, "--agent", agent])
-execute(["dry-run", "--config", config, "--agent", agent])
-execute(["run", "--config", config, "--agent", agent])
-execute([
-	"status",
-	"--config", config,
-	"--agent", agent,
-	"--project-dir", project_dir,
-	"--ai-config-dir", ai_config_dir,
-	"--prd-name", prd_name,
-])
+execute(['run', '--config', 'tool/ai_adapter.toml', '--agent', 'general-senior-dev-agent'])
 ```
+
+更多细节请参阅 `ai_config` 目录下的 `rules\` 文档以及 `tool\ai_adapter.toml`。
