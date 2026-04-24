@@ -14,11 +14,12 @@ from .runner import AIInvocation, create_strategy
 
 
 class PreparedTask:
-    def __init__(self, config: Any, agent: str, task_dir: Path, prompt: str, strategy: Any):
+    def __init__(self, config: Any, agent: str, task_dir: Path, prompt: str, prompt_path: Path, strategy: Any):
         self.config = config
         self.agent = agent
         self.task_dir = task_dir
         self.prompt = prompt
+        self.prompt_path = prompt_path
         self.strategy = strategy
 
 
@@ -135,7 +136,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     print(f"task: {task.task_dir}")
     print(f"AI invocation: {task.task_dir / 'ai-invocation.md'}")
     try:
-        result = task.strategy.run(task.prompt, cwd=task.config.project_dir, stdout_path=stdout_path, stderr_path=stderr_path)
+        result = task.strategy.run(task.prompt, cwd=task.config.project_dir, prompt_path=task.prompt_path, stdout_path=stdout_path, stderr_path=stderr_path)
         print(f"returncode: {result.returncode}")
         return 0 if result.returncode == 0 else 2
     finally:
@@ -159,7 +160,7 @@ def build_task(args: argparse.Namespace) -> PreparedTask:
     strategy = create_strategy(ai_config)
     invocation = strategy.invocation(prompt, config.project_dir)
     write_invocation(task_dir, invocation)
-    return PreparedTask(config=config, agent=agent, task_dir=task_dir, prompt=prompt, strategy=strategy)
+    return PreparedTask(config=config, agent=agent, task_dir=task_dir, prompt=prompt, prompt_path=prompt_path, strategy=strategy)
 
 
 def build_prompt(agent: str, prd_text: str) -> str:

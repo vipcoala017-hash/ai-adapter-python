@@ -29,6 +29,21 @@ class AIResult:
     returncode: int
 
 
+class CommandLaunchError(RuntimeError):
+    def __init__(self, *, executable: str, cwd: Path, process_command: str, logical_command: str, launch_mode: str):
+        message = "\n".join(
+            [
+                f"启动 AI 命令失败：未找到可执行文件 `{executable}`。",
+                f"launch_mode: {launch_mode}",
+                f"cwd: {cwd}",
+                f"subprocess command: {process_command}",
+                f"logical command: {logical_command}",
+                "请确认该可执行文件已安装，并且已加入 PATH；如果在 Windows 上使用 PowerShell Core，请检查是否应改为 pwsh。",
+            ]
+        )
+        super().__init__(message)
+
+
 class CliStrategy:
     def __init__(self, config: AIConfig):
         self.config = config
@@ -46,27 +61,43 @@ class CliStrategy:
             launch_mode=self.config.launch_mode,
         )
 
-    def run(self, prompt: str, cwd: Path, *, stdout_path: Path | None = None, stderr_path: Path | None = None) -> AIResult:
+    def run(self, prompt: str, cwd: Path, *, prompt_path: Path | None = None, stdout_path: Path | None = None, stderr_path: Path | None = None) -> AIResult:
         cmd = self._build_command(prompt)
         input_text: str | None = prompt
+        stdin_handle = None
         if "{{prompt}}" in self.config.command:
             input_text = None
+        elif self.config.prompt_mode == "stdin" and prompt_path is not None:
+            input_text = None
+            stdin_handle = prompt_path.open("r", encoding="utf-8")
         if self.config.prompt_mode == "arg" and self.config.launch_mode == "direct" and "{{prompt}}" not in self.config.command:
             cmd.append(prompt)
             input_text = None
         elif self.config.prompt_mode == "arg":
             input_text = None
-        proc = subprocess.Popen(
-            cmd,
-            stdin=subprocess.PIPE if input_text is not None else None,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            cwd=str(cwd),
-            bufsize=1,
-        )
+        try:
+            proc = subprocess.Popen(
+                cmd,
+                stdin=stdin_handle if stdin_handle is not None else (subprocess.PIPE if input_text is not None else None),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                cwd=str(cwd),
+                bufsize=1,
+            )
+        except FileNotFoundError as exc:
+            raise CommandLaunchError(
+                executable=cmd[0],
+                cwd=cwd,
+                process_command=subprocess.list2cmdline(cmd),
+                logical_command=command_preview(self.config),
+                launch_mode=self.config.launch_mode,
+            ) from exc
+        finally:
+            if stdin_handle is not None:
+                stdin_handle.close()
         stdout_chunks: list[str] = []
         stderr_chunks: list[str] = []
         threads: list[threading.Thread] = []
@@ -94,18 +125,16 @@ class CliStrategy:
         has_prompt = "{{prompt}}" in self.config.command
         command = self.config.command.replace("{{prompt}}", prompt)
         base = split_command(command)
+        if self.config.prompt_mode == "stdin" and not has_prompt:
+            # Feed stdin to the child process directly to avoid shell pipelines dropping prompt text.
+            return base
         if self.config.launch_mode == "direct":
             return base
         if self.config.launch_mode == "powershell":
             quoted = " ".join(quote_powershell_arg(item) for item in base)
-            if self.config.prompt_mode == "stdin" and not has_prompt:
-                expression = "$inputText = [Console]::In.ReadToEnd(); " + f"$inputText | {quoted}"
-            else:
-                expression = quoted if has_prompt else f"{quoted} {quote_powershell_arg(prompt)}"
+            expression = quoted if has_prompt else f"{quoted} {quote_powershell_arg(prompt)}"
             return ["powershell.exe", "-ExecutionPolicy", "Bypass", "-Command", expression]
         if self.config.launch_mode == "bash":
-            if self.config.prompt_mode == "stdin" and not has_prompt:
-                return ["bash", "-lc", f"cat | {shlex.join(base)}"]
             return ["bash", "-lc", shlex.join(base if has_prompt else [*base, prompt])]
         raise ValueError(f"不支持的 launch_mode：{self.config.launch_mode}")
 
@@ -130,7 +159,7 @@ def replay_command(config: AIConfig, prompt_file: str = "ai-prompt.md") -> str:
     if "{{prompt}}" in config.command:
         return base.replace("<prompt>", f"(Get-Content -LiteralPath {prompt_file} -Raw)")
     if config.prompt_mode == "stdin":
-        return f"Get-Content -LiteralPath {prompt_file} -Raw | {base}"
+        return f'cmd.exe /d /c "{base} < {prompt_file}"'
     return f"{base} (Get-Content -LiteralPath {prompt_file} -Raw)"
 
 

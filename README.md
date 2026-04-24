@@ -7,6 +7,7 @@
 1. `tool\ai_adapter.toml`：主配置文件，负责指定项目目录、AI 配置目录、PRD 映射和 provider 模板。
 2. `ai_config\`：AI 相关配置目录，包含 `rules\`、`agents\` 等运行所需内容。
 3. `project` 下的 PRD 文件，例如 `PRD.toml`：本次任务的说明文件，描述目标、范围和处理要求。
+4. 选择与系统环境匹配的启动方式：Windows 通常使用 `powershell`，类 Unix 环境通常使用 `bash`。
 
 ## 调用示例
 

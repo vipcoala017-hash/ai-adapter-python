@@ -26,7 +26,7 @@ default_agent = "general-senior-dev-agent"
 # How prompt text is passed to the CLI: stdin or arg.
 prompt_mode = "stdin"
 # Child process launch mode: direct, powershell, or bash.
-launch_mode = "bash"
+launch_mode = "powershell"
 # Timeout for one invocation, in seconds.
 timeout_seconds = 600
 # Whether to append --yolo.
@@ -47,4 +47,4 @@ cli = 'claude --model "{{agent.model.claude}}" {{yolo:--yolo}}'
 [agents.general-senior-dev-agent]
 # The agent name must match the markdown file under .codex/agents/.
 name = "general-senior-dev-agent"
-model = { codex = "gpt-5.4-mini", copilot = "gpt-5-mini", claude = "claude-3.5-sonnet" }
+model = { codex = "gpt-5.4-mini", copilot = "gpt-5.4", claude = "claude-3.5-sonnet" }
