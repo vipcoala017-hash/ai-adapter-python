@@ -158,7 +158,7 @@ def build_task(args: argparse.Namespace) -> PreparedTask:
 
     ai_config = config.ai_for_agent(agent)
     strategy = create_strategy(ai_config)
-    invocation = strategy.invocation(prompt, config.project_dir)
+    invocation = strategy.invocation(prompt, config.project_dir, prompt_path=prompt_path)
     write_invocation(task_dir, invocation)
     return PreparedTask(config=config, agent=agent, task_dir=task_dir, prompt=prompt, prompt_path=prompt_path, strategy=strategy)
 

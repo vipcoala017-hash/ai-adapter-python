@@ -48,8 +48,8 @@ class CliStrategy:
     def __init__(self, config: AIConfig):
         self.config = config
 
-    def invocation(self, prompt: str, cwd: Path) -> AIInvocation:
-        cmd = self._build_command(prompt)
+    def invocation(self, prompt: str, cwd: Path, *, prompt_path: Path | None = None) -> AIInvocation:
+        cmd = self._build_command(prompt, prompt_path=prompt_path)
         return AIInvocation(
             provider=self.config.provider,
             strategy=self.config.strategy,
@@ -62,12 +62,12 @@ class CliStrategy:
         )
 
     def run(self, prompt: str, cwd: Path, *, prompt_path: Path | None = None, stdout_path: Path | None = None, stderr_path: Path | None = None) -> AIResult:
-        cmd = self._build_command(prompt)
+        cmd = self._build_command(prompt, prompt_path=prompt_path)
         input_text: str | None = prompt
         stdin_handle = None
         if "{{prompt}}" in self.config.command:
             input_text = None
-        elif self.config.prompt_mode == "stdin" and prompt_path is not None:
+        elif self.config.prompt_mode == "stdin" and prompt_path is not None and self.config.launch_mode != "bash":
             input_text = None
             stdin_handle = prompt_path.open("r", encoding="utf-8")
         if self.config.prompt_mode == "arg" and self.config.launch_mode == "direct" and "{{prompt}}" not in self.config.command:
@@ -121,11 +121,13 @@ class CliStrategy:
             thread.join()
         return AIResult("".join(stdout_chunks), "".join(stderr_chunks), returncode)
 
-    def _build_command(self, prompt: str) -> list[str]:
+    def _build_command(self, prompt: str, *, prompt_path: Path | None = None) -> list[str]:
         has_prompt = "{{prompt}}" in self.config.command
         command = self.config.command.replace("{{prompt}}", prompt)
         base = split_command(command)
         if self.config.prompt_mode == "stdin" and not has_prompt:
+            if self.config.launch_mode == "bash" and prompt_path is not None:
+                return ["bash", "-lc", f"{shlex.join(base)} < {shlex.quote(str(prompt_path))}"]
             # Feed stdin to the child process directly to avoid shell pipelines dropping prompt text.
             return base
         if self.config.launch_mode == "direct":
@@ -159,6 +161,8 @@ def replay_command(config: AIConfig, prompt_file: str = "ai-prompt.md") -> str:
     if "{{prompt}}" in config.command:
         return base.replace("<prompt>", f"(Get-Content -LiteralPath {prompt_file} -Raw)")
     if config.prompt_mode == "stdin":
+        if config.launch_mode == "bash":
+            return f"{base} < {prompt_file}"
         return f'cmd.exe /d /c "{base} < {prompt_file}"'
     return f"{base} (Get-Content -LiteralPath {prompt_file} -Raw)"
 

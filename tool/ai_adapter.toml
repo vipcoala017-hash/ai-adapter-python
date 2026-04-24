@@ -47,4 +47,4 @@ cli = 'claude --model "{{agent.model.claude}}" {{yolo:--yolo}}'
 [agents.general-senior-dev-agent]
 # The agent name must match the markdown file under .codex/agents/.
 name = "general-senior-dev-agent"
-model = { codex = "gpt-5.4-mini", copilot = "gpt-5.4", claude = "claude-3.5-sonnet" }
+model = { codex = "gpt-5.4-mini", copilot = "gpt-5.4-mini", claude = "claude-3.5-sonnet" }
