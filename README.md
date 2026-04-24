@@ -7,7 +7,7 @@
 1. `tool\ai_adapter.toml`：主配置文件，负责指定项目目录、AI 配置目录、PRD 映射和 provider 模板。
 2. `ai_config\`：AI 相关配置目录，包含 `rules\`、`agents\` 等运行所需内容。
 3. `project` 下的 PRD 文件，例如 `PRD.toml`：本次任务的说明文件，描述目标、范围和处理要求。
-4. 选择与系统环境匹配的启动方式：Windows 通常使用 `powershell`，类 Unix 环境通常使用 `bash`。
+4. 默认使用 `launch_mode = "auto"`：优先选择 `bash`，如果在 Windows 上没有显式指定且找不到 `bash`，则回退到 `powershell.exe`。
 
 ## 调用示例
 
@@ -70,7 +70,7 @@ python -m ai_adapter_tool run --config tool\ai_adapter.toml --agent general-seni
 | `ai_provider` | 当前启用的 provider 名称，必须能在 `[providers.<name>]` 中找到对应模板。 |
 | `default_agent` | 未传 `--agent` 时使用的 agent 名称。 |
 | `prompt_mode` | 提示词传递方式，只支持 `stdin` 或 `arg`。 |
-| `launch_mode` | 子进程启动方式，只支持 `direct`、`powershell` 或 `bash`。 |
+| `launch_mode` | 子进程启动方式，支持 `auto`、`direct`、`powershell`、`bash`。`auto` 会优先使用 `bash`，并只在 Windows 上回退到 `powershell.exe`；如果显式指定了当前平台不支持的模式，程序会直接报错退出。 |
 | `timeout_seconds` | 单次调用超时时间，单位秒。 |
 | `yolo` | 是否向 provider CLI 追加 `--yolo`。 |
 
@@ -144,6 +144,11 @@ python -m ai_adapter_tool run --config tool\ai_adapter.toml --agent general-seni
 4. `--project-dir` 和 `--ai-config-dir` 都会影响相对路径解析结果。
 
 # 运行示例
+
+说明：
+1. 推荐保留配置里的 `launch_mode = "auto"`，让程序自行选择可用启动器。
+2. 如果显式指定 `powershell`，当前只支持 Windows 上的 `powershell.exe`。
+3. `prompt_mode = "stdin"` 时，类 Unix 环境会优先通过 `bash` 输入重定向传递 prompt，避免 VS Code 集成终端与外部终端行为不一致。
 
 PowerShell:
 

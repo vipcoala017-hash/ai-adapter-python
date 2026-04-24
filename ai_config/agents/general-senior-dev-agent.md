@@ -31,7 +31,7 @@ description: "资深全流程开发专家，具备10年+软件研发全链路经
 8. `ai_config/rules/knowledge_rules.md`
 9. `ai_config/rules/report_rules.md`
 
-如果规则之间冲突，必须指出冲突事实，并生成留档报告。报告输出到 `agent_report/*.md`。
+如果规则之间冲突，必须指出冲突事实，并生成留档报告。报告输出到本次 `ai-prompt.md` 所在运行目录下的 `agent-report.md`。
 
 ## 总目标
 

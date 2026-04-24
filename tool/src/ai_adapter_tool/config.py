@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+import shutil
+import sys
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,6 +15,28 @@ DEFAULT_AI_CONFIG_DIR = "../ai_config"
 DEFAULT_RUNTIME_DIR = "runtime"
 DEFAULT_PRD_NAME = "default"
 DEFAULT_PRD_REFS = {DEFAULT_PRD_NAME: "PRD.toml"}
+
+
+def resolve_launch_mode(configured_launch_mode: str) -> str:
+    if configured_launch_mode == "auto":
+        if shutil.which("bash"):
+            return "bash"
+        if sys.platform == "win32" and shutil.which("powershell.exe"):
+            return "powershell"
+        raise ValueError("ai.launch_mode=auto 未找到可用启动器；请安装 bash，或在 Windows 上安装 powershell.exe，或显式改为 direct")
+    if configured_launch_mode == "bash":
+        if not shutil.which("bash"):
+            raise ValueError("当前环境不支持 ai.launch_mode=bash：未找到 bash")
+        return "bash"
+    if configured_launch_mode == "powershell":
+        if sys.platform != "win32":
+            raise ValueError("当前环境不支持 ai.launch_mode=powershell：仅支持 Windows powershell.exe")
+        if not shutil.which("powershell.exe"):
+            raise ValueError("当前环境不支持 ai.launch_mode=powershell：未找到 powershell.exe")
+        return "powershell"
+    if configured_launch_mode == "direct":
+        return "direct"
+    raise ValueError(f"ai.launch_mode 只支持 auto、direct、powershell 或 bash：{configured_launch_mode}")
 
 
 @dataclass(frozen=True)
@@ -30,6 +54,7 @@ class AIConfig:
     prompt_mode: str
     timeout_seconds: int
     launch_mode: str
+    effective_launch_mode: str
     yolo: bool
 
 
@@ -88,6 +113,7 @@ class AppConfig:
             prompt_mode=self.ai.prompt_mode,
             timeout_seconds=self.ai.timeout_seconds,
             launch_mode=self.ai.launch_mode,
+            effective_launch_mode=self.ai.effective_launch_mode,
             yolo=self.ai.yolo,
         )
 
@@ -158,11 +184,10 @@ def load_config(
 
     ai_raw = raw.get("ai", {})
     prompt_mode = str(ai_raw.get("prompt_mode", "stdin"))
-    launch_mode = str(ai_raw.get("launch_mode", "powershell"))
+    launch_mode = str(ai_raw.get("launch_mode", "auto"))
     if prompt_mode not in {"stdin", "arg"}:
         raise ValueError("ai.prompt_mode 只支持 stdin 或 arg")
-    if launch_mode not in {"direct", "powershell", "bash"}:
-        raise ValueError("ai.launch_mode 只支持 direct、powershell 或 bash")
+    effective_launch_mode = resolve_launch_mode(launch_mode)
 
     provider = str(ai_raw.get("ai_provider", "codex"))
     provider_templates = _load_provider_templates(raw.get("providers", {}))
@@ -178,6 +203,7 @@ def load_config(
         prompt_mode=prompt_mode,
         timeout_seconds=int(ai_raw.get("timeout_seconds", 600)),
         launch_mode=launch_mode,
+        effective_launch_mode=effective_launch_mode,
         yolo=bool(ai_raw.get("yolo", False)),
     )
     return AppConfig(
